@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>StudyBuddy AI — Student workspace</title>
+<style>
+:root{--bg:#f5f7ff;--card:#fff;--ink:#172033;--muted:#64708a;--accent:#6558e8;--line:#e5e9f5}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font:16px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;color:var(--ink)}
+header{background:linear-gradient(120deg,#6558e8,#8a72f4);color:white;padding:28px 20px}
+.wrap{max-width:1000px;margin:auto;padding:0 16px}header h1{margin:0;font-size:28px}header p{margin:6px 0 0;opacity:.9}
+main{padding:24px 0}.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+button,.tab{border:0;border-radius:12px;padding:11px 15px;background:#e9e8ff;color:#4438b8;font-weight:650;cursor:pointer}
+.tab.active,button.primary{background:var(--accent);color:white}.panel{display:none}.panel.active{display:block}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px;box-shadow:0 5px 20px #25356b08}
+h2,h3{margin-top:0}label{display:block;font-weight:650;margin:12px 0 6px}
+input,textarea,select{width:100%;padding:12px;border:1px solid #d8deef;border-radius:10px;font:inherit;background:white}
+textarea{min-height:110px;resize:vertical}.result{margin-top:14px;padding:14px;border-radius:12px;background:#f2f3ff;white-space:pre-wrap}
+.small{font-size:13px;color:var(--muted)}.preview{max-width:100%;max-height:220px;margin-top:10px;border-radius:12px;display:none}
+.chatlog{height:240px;overflow:auto;background:#f8f9ff;border-radius:12px;padding:12px;margin:12px 0}
+.msg{padding:10px 12px;border-radius:12px;margin:8px 0;max-width:90%;white-space:pre-wrap}.user{background:#e8e5ff;margin-left:auto}.bot{background:white;border:1px solid var(--line)}
+footer{text-align:center;color:var(--muted);padding:25px}
+</style>
+</head>
+<body>
+<header><div class="wrap"><h1>✨ StudyBuddy AI</h1><p>Your friendly study workspace — notes, quizzes, and homework help.</p></div></header>
+<main class="wrap">
+<div class="tabs">
+<button class="tab active" data-tab="notes">📝 Notes</button><button class="tab" data-tab="quiz">🧠 Quiz maker</button><button class="tab" data-tab="homework">📷 Homework</button><button class="tab" data-tab="chat">💬 Study chat</button>
+</div>
+<section id="notes" class="panel active"><div class="card"><h2>Make quick notes</h2><label for="topic">Topic or chapter</label><input id="topic" placeholder="e.g. Photosynthesis"><label for="source">Paste your textbook text / lesson</label><textarea id="source" placeholder="Paste a paragraph or chapter excerpt here..."></textarea><button class="primary" onclick="makeNotes()">Create notes</button><div id="notesOut" class="result" hidden></div><p class="small">Starter version: organizes text you paste. AI summaries can be connected later.</p></div></section>
+<section id="quiz" class="panel"><div class="card"><h2>Quiz maker</h2><label for="quizText">Paste notes or facts</label><textarea id="quizText" placeholder="Paste a few facts to turn into a simple quiz..."></textarea><button class="primary" onclick="makeQuiz()">Make a practice quiz</button><div id="quizOut" class="result" hidden></div></div></section>
+<section id="homework" class="panel"><div class="card"><h2>Homework photo</h2><p>Choose a worksheet photo to preview it here.</p><input type="file" id="photo" accept="image/*"><img id="preview" class="preview" alt="Homework preview"><label for="question">What do you need help with?</label><textarea id="question" placeholder="Type the question or describe where you're stuck..."></textarea><div class="result">Your photo is previewed locally. This demo doesn't send images or solve them yet—type the question to use it with an AI assistant.</div></div></section>
+<section id="chat" class="panel"><div class="card"><h2>Study chat</h2><p class="small">This demo gives a helpful prompt; connect an AI API for real replies.</p><div class="chatlog" id="chatlog"><div class="msg bot">Hi! What subject are you studying? Ask me for an explanation, example, or practice question.</div></div><form onsubmit="sendChat(event)"><input id="chatInput" placeholder="Ask a study question..." required><br><br><button class="primary">Send</button></form></div></section>
+</main><footer>StudyBuddy AI · Starter prototype</footer>
+<script>
+document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>{
+ document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+ b.classList.add('active');document.getElementById(b.dataset.tab).classList.add('active')
+}));
+function makeNotes(){let t=document.getElementById('topic').value.trim(),s=document.getElementById('source').value.trim(),o=document.getElementById('notesOut');if(!s){o.hidden=false;o.textContent='Paste some lesson text first.';return}
+let sentences=s.match(/[^.!?]+[.!?]?/g)||[s];o.hidden=false;o.textContent='📌 '+(t||'Quick notes')+'\n\n• '+sentences.map(x=>x.trim()).filter(Boolean).join('\n• ')+'\n\n⭐ Tip: Highlight key terms and explain them in your own words.'}
+function makeQuiz(){let s=document.getElementById('quizText').value.trim(),o=document.getElementById('quizOut');o.hidden=false;if(!s){o.textContent='Paste a few facts first.';return}
+let chunks=s.split(/[.!?]\s+/).filter(x=>x.trim().length>15).slice(0,5);o.textContent='Practice prompts:\n\n'+chunks.map((x,i)=>(i+1)+'. Explain this in your own words: “'+x.trim()+'”').join('\n\n')+'\n\nWrite your answers in a notebook, then check them against your source.'}
+document.getElementById('photo').addEventListener('change',e=>{let f=e.target.files[0],img=document.getElementById('preview');if(f){img.src=URL.createObjectURL(f);img.style.display='block'}});
+function sendChat(e){e.preventDefault();let input=document.getElementById('chatInput'),log=document.getElementById('chatlog'),q=input.value.trim();if(!q)return;log.innerHTML+='<div class="msg user"></div><div class="msg bot">Demo mode: connect an AI model to get an actual answer. You can copy this question into ChatGPT now and ask for a step-by-step explanation.</div>';log.querySelectorAll('.msg.user').item(log.querySelectorAll('.msg.user').length-1).textContent=q;input.value='';log.scrollTop=log.scrollHeight}
+</script></body></html>
